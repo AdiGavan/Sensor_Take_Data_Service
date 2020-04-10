@@ -21,7 +21,7 @@ def before_first_request_func():
                 sensor_type VARCHAR(20) NOT NULL,
                 sensor_date DATE NOT NULL,
                 sensor_time TIME NOT NULL,
-                sensor_value NUMERIC (5, 2) NOT NULL
+                sensor_value NUMERIC (12, 6) NOT NULL
 
         )
         """)
