@@ -24,8 +24,7 @@ def before_first_request_func():
         CREATE TABLE if not exists sensors_values (
                 id SERIAL PRIMARY KEY,
                 sensor_type VARCHAR(20) NOT NULL,
-                sensor_date DATE NOT NULL,
-                sensor_time TIME NOT NULL,
+                sensor_timestamp TIMESTAMP NOT NULL,
                 sensor_value NUMERIC (12, 6) NOT NULL
 
         )
@@ -36,12 +35,12 @@ def before_first_request_func():
         db.close()
 
 # Function for adding new line into the database
-def addDataToDatabase(sensorType, sensorDate, sensorTime, sensorValue):
+def addDataToDatabase(sensorType, sensorTimestamp, sensorValue):
     global db
     db = psycopg2.connect(host='db_sensors', port=5432, user='postgres', password='postgres', dbname='sensors_info_db')
     cursor = db.cursor()
     try:
-        cursor.execute("INSERT INTO sensors_values(sensor_type, sensor_date, sensor_time, sensor_value) VALUES(%s, %s, %s, %s) RETURNING id", (sensorType, sensorDate, sensorTime, sensorValue))
+        cursor.execute("INSERT INTO sensors_values(sensor_type, sensor_timestamp, sensor_value) VALUES(%s, %s, %s) RETURNING id", (sensorType, sensorTimestamp, sensorValue))
         lineID = cursor.fetchone()[0]
         db.commit()
     except:
@@ -63,7 +62,8 @@ def take_data():
     sensorDate = jsonData['sensordate']
     sensorTime = jsonData['sensortime']
     sensorValue = jsonData['sensorvalue']
-    lineID = addDataToDatabase(sensorType, sensorDate, sensorTime, sensorValue)
+    sensorTimestamp = sensorDate + " " + sensorTime
+    lineID = addDataToDatabase(sensorType, sensorTimestamp, sensorValue)
 
     # Test (returneaza datele introduse + id-ul)
     #return jsonify({'result' : 'Success!', 'Type' : sensorType, 'Date' : sensorDate, "Time" : sensorTime, "Value" : sensorValue, "ID" : lineID})
