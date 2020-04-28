@@ -6,17 +6,12 @@ app = Flask(__name__)
 
 metrics = PrometheusMetrics(app)
 
-metrics.info('app_info_sensor_Take', 'Application info', version='1.0.10')
-
-db = None
+metrics.info('app_info_sensor_Take', 'Application info', version='1.0.0')
 
 @app.before_first_request
 def before_first_request_func():
 
-    global db
     db = psycopg2.connect(host='db_sensors', port=5432, user='postgres', password='postgres', dbname='sensors_info_db')
-    #db = psycopg2.connect("postgresql+psycopg2://postgres:postgres@db:5432/example")
-    #db = psycopg2.connect(user='postgres', password='postgres', dbname='sensors_info_db')
 
     cursor = db.cursor()
     cursor.execute(
@@ -29,14 +24,16 @@ def before_first_request_func():
 
         )
         """)
-    cursor.close()
+    if cursor is not None:
+        cursor.close()
+
     db.commit()
     if db is not None:
         db.close()
 
 # Function for adding new line into the database
 def addDataToDatabase(sensorType, sensorTimestamp, sensorValue):
-    global db
+
     db = psycopg2.connect(host='db_sensors', port=5432, user='postgres', password='postgres', dbname='sensors_info_db')
     cursor = db.cursor()
     try:
@@ -64,9 +61,6 @@ def take_data():
     sensorValue = jsonData['sensorvalue']
     sensorTimestamp = sensorDate + " " + sensorTime
     lineID = addDataToDatabase(sensorType, sensorTimestamp, sensorValue)
-
-    # Test (returneaza datele introduse + id-ul)
-    #return jsonify({'result' : 'Success!', 'Type' : sensorType, 'Date' : sensorDate, "Time" : sensorTime, "Value" : sensorValue, "ID" : lineID})
     
     if lineID == -1:
         status = "Failed"
